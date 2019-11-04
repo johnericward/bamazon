@@ -1,13 +1,11 @@
 var inquirer = require("inquirer");
 var mysql = require("mysql");
-var dotenv = require("dotenv").config();
-var keys = require("./keys.js");
+
 
 var connection = mysql.createConnection({
     host: "localhost",
     port: 3306,
     user: "root",
-    // password: keys.mysql.key,
     password: "rootroot",
     database: "bamazon"
 });
@@ -26,38 +24,36 @@ var updateStock = (id,newStockQuantity) => {
 
 
 var promptBuyer = () => {
-
+//what ID# ?
     inquirer.prompt([{
         type: "input",
         name: "id",
-        message: "Please enter the ID # of the item you want to purchase:",
+        message: "What ID# would you like?",
         validate: input => isNaN(input) === true ? false : true
     },
+        //what quantity ?
     {
         type: "input",
         name: "amount",
-        message: "Please enter how many you would like to purchase: ",
+        message: "What quantity?",
         validate: input => isNaN(input) === true ? false : true
     }]).then(({id,amount})=>{ 
         console.log(id,amount)
         connection.query("SELECT * FROM products WHERE item_id=?",[id],(err,res)=>{
-            if(err) throw err;
+            if (err) throw err;
+            // we don't have enough
             if(res[0].stock_quantity < amount){
-                console.log(`We do not have that many please try a different amount`)
+                console.log(`We don't have enough of that item.`)
                 getAll()
-            }else{
-                console.log("Order confirmed")
-                console.log(`You have been charged ${res[0].price*amount} All transactions are Non-transferable and Non-refundable..\nPlease run application again to continue shopping`)
+            } else {
+                //or order successful with recap of order
+                console.log("Order successful!")
+                console.log(`Your total is ${res[0].price*amount} \nRestart program to begin again.`)
                 var newStockQuantity = res[0].stock_quantity - amount 
                 updateStock(id,newStockQuantity)
             }
-            
-
-
         })
-
     })
-
 };
 
 
@@ -84,5 +80,4 @@ connection.connect((err) => {
 
 
 
-// * The first should ask them the ID of the product they would like to buy.
-//    * The second message should ask how many units of the product they would like to buy.
+
